@@ -569,6 +569,14 @@ class Solutions(Base.Base):
                 index
             )
 
+        elif (com == 'CPCSLP'):
+            self.m_log.Message("\t{}".format(self.commands[com]['desc']), self.m_log.const_general_text)
+            return self.__invokeDynamicFn(
+                [],
+                'analyzemosaicdataset',
+                'arcpy.management.CreatePointCloudSceneLayerPackage',
+                index
+            )
         elif(com == 'JF'):
             fullPath = os.path.join(self.m_base.m_geoPath, self.m_base.m_mdName)
             try:
@@ -989,6 +997,10 @@ class Solutions(Base.Base):
             mdName = os.path.join(self.m_base.m_geoPath, self.m_base.m_mdName)
             processKey = 'managetilecache'
             self.log("Building cache for:" + mdName, self.m_log.const_general_text)
+            self.log("Getting tiling Schema : ", self.m_log.const_general_text)
+            tile_scheme_mtc = self.m_base.getAbsPath(self.getProcessInfoValue(processKey, 'import_tiling_scheme', index))
+            if tile_scheme_mtc != '#' and tile_scheme_mtc != '':
+                tile_scheme_mtc = self.prefixFolderPath(self.getProcessInfoValue(processKey, 'import_tiling_scheme', index), os.path.dirname(self.config))
 
             try:
                 arcpy.ManageTileCache_management(
@@ -997,10 +1009,12 @@ class Solutions(Base.Base):
                     self.getProcessInfoValue(processKey, 'in_cache_name', index),
                     mdName,
                     self.getProcessInfoValue(processKey, 'tiling_scheme', index),
-                    self.getProcessInfoValue(processKey, 'import_tiling_scheme', index),
+                    tile_scheme_mtc,
                     self.getProcessInfoValue(processKey, 'scales', index),
                     self.getProcessInfoValue(processKey, 'area_of_interest', index),
-                    self.getProcessInfoValue(processKey, 'max_cell_size', index))
+                    self.getProcessInfoValue(processKey, 'max_cell_size', index),
+                    self.getProcessInfoValue(processKey, 'min_cached_scale', index),
+                    self.getProcessInfoValue(processKey, 'max_cached_scale', index))
 
                 return True
             except:
@@ -1403,6 +1417,10 @@ class Solutions(Base.Base):
             {'desc': 'Uploads and publishes a service definition to a specified server.',
              'fnc': executeCommand
              },
+            'CPCSLP':
+            {'desc': 'Creates a point cloud scene layer package (.slpk file) from LAS, zLAS, LAZ, or LAS dataset input.',
+             'fnc': executeCommand
+             },
             'CRTT':
             {'desc': 'Delete records from the Raster Type table.',
              'fnc': executeCommand
@@ -1597,4 +1615,4 @@ class Solutions(Base.Base):
                  cmd == 'CM' or
                  is_user_cmd == True)):
                 return False
-        return True 
+        return True
